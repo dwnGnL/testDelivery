@@ -1,0 +1,49 @@
+
+syntax = "proto3";
+
+option go_package = "testDelivery/authorization";
+
+
+package authorithationProto;
+
+// The greeting service definition.
+service Authorithation {
+  // Sends a greeting
+  rpc SignUp (userRequest) returns (ReplyMess) {}
+  // Sends another greeting
+  rpc SignIn (LoginRequest ) returns (Token) {}
+
+  rpc CheckToken (Token) returns (TokenResp) {}
+
+}
+enum Role {
+  ADMIN = 0;
+  COURIER = 1;
+  CUSTOMER = 2;
+}
+// The request message containing the user's name.
+message userRequest {
+  string name = 1;
+  string password = 2;
+  Role role = 3;
+}
+
+message LoginRequest  {
+  string name = 1;
+  string password = 2;
+}
+// The response message containing the greetings
+message ReplyMess {
+  bool success = 1;
+  string message = 2;
+}
+
+message Token {
+  string accessToken = 1;
+}
+
+message TokenResp {
+  string name = 1;
+  Role role = 2;
+}
+
