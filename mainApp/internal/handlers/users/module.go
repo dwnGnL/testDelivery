@@ -91,7 +91,7 @@ func (p userHandler) SignIn(c *gin.Context) {
 		Password: userReq.Password,
 	}
 
-	res, err := p.AuthorithationClient.SingIn(c.Request.Context(), &authUserReq)
+	res, err := p.AuthorithationClient.SignIn(c.Request.Context(), &authUserReq)
 	if err != nil || res == nil {
 		p.log.Warnln("SignUp err")
 		c.JSON(http.StatusBadGateway, gin.H{"error": "SignUp err " + err.Error()})
