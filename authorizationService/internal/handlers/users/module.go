@@ -5,6 +5,7 @@ import (
 	pb "testDelivery/authorizationProto"
 	"testDelivery/authorizationService/pkg/config"
 	"testDelivery/authorizationService/pkg/db"
+	"testDelivery/authorizationService/pkg/token"
 
 	"github.com/sirupsen/logrus"
 	"go.uber.org/fx"
@@ -17,12 +18,14 @@ type Params struct {
 	db.DbInter
 	*config.Tuner
 	*logrus.Logger
+	token.TokenInter
 }
 
 type userHandler struct {
-	db   db.DbInter
-	log  *logrus.Logger
-	conf *config.Tuner
+	db    db.DbInter
+	log   *logrus.Logger
+	conf  *config.Tuner
+	token token.TokenInter
 	pb.UnimplementedAuthorithationServer
 }
 
@@ -40,6 +43,13 @@ func (p userHandler) SignIn(ctx context.Context, logReq *pb.LoginRequest) (*pb.T
 }
 
 func (p userHandler) CheckToken(ctx context.Context, token *pb.Token) (*pb.TokenResp, error) {
-	return nil, nil
-
+	claims, err := p.token.ParseTokenString(token.AccessToken)
+	if err != nil {
+		p.log.Warnln("ParseTokenString err:", err)
+		return nil, err
+	}
+	return &pb.TokenResp{
+		UserID: claims.UserID,
+		Role:   pb.Role(pb.Role_value[claims.Role]),
+	}, nil
 }

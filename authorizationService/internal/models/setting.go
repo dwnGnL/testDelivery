@@ -1,9 +1,9 @@
 package models
 
 type Config struct {
-	Main          ConfMain
-	DB            ConfDB
-	Authorization DefaultConfForService
+	Main  ConfMain
+	DB    ConfDB
+	Token ConfToken
 }
 
 // ConfMain - basic configuration
@@ -12,6 +12,10 @@ type ConfMain struct {
 	Name string
 }
 
+type ConfToken struct {
+	Key        string
+	ExpiredSec int64
+}
 type DefaultConfForService struct {
 	Addr string
 	Port string
