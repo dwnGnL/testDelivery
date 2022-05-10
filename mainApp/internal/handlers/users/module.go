@@ -7,7 +7,6 @@ import (
 	pb "testDelivery/authorizationProto"
 	"testDelivery/mainApp/internal/models"
 	"testDelivery/mainApp/pkg/config"
-	"testDelivery/mainApp/pkg/db"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -19,17 +18,17 @@ var Module = fx.Provide(NewUserHandler)
 
 type UserHandler interface {
 	SignUp(c *gin.Context)
+	SignIn(c *gin.Context)
+	CheckAuth() gin.HandlerFunc
 }
 
 type Params struct {
 	fx.In
-	db.DbInter
 	*config.Tuner
 	*logrus.Logger
 }
 
 type userHandler struct {
-	db   db.DbInter
 	log  *logrus.Logger
 	conf *config.Tuner
 	pb.AuthorithationClient
@@ -43,7 +42,7 @@ func NewUserHandler(params Params) UserHandler {
 	defer conn.Close()
 	c := pb.NewAuthorithationClient(conn)
 
-	return &userHandler{db: params.DbInter, log: params.Logger, conf: params.Tuner, AuthorithationClient: c}
+	return &userHandler{log: params.Logger, conf: params.Tuner, AuthorithationClient: c}
 }
 
 func (p userHandler) SignUp(c *gin.Context) {
@@ -61,7 +60,7 @@ func (p userHandler) SignUp(c *gin.Context) {
 	authUserReq := pb.UserRequest{
 		Name:     userReq.Username,
 		Password: userReq.Password,
-		Role:     pb.Role(pb.Role_value[userReq.Role]),
+		Role:     pb.Role_CUSTOMER,
 	}
 
 	res, err := p.AuthorithationClient.SignUp(c.Request.Context(), &authUserReq)

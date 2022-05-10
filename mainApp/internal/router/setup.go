@@ -3,7 +3,10 @@ package router
 import (
 	"context"
 	"net/http"
+	pb "testDelivery/authorizationProto"
+	"testDelivery/mainApp/internal/handlers/parcel"
 	"testDelivery/mainApp/internal/handlers/users"
+
 	"testDelivery/mainApp/pkg/config"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +24,7 @@ type Params struct {
 	fx.In
 	Lifecycle fx.Lifecycle
 	User      users.UserHandler
+	Parcel    parcel.ParcelHandler
 
 	*logrus.Logger
 	*config.Tuner
@@ -29,10 +33,15 @@ type Params struct {
 func SetupRouter(params Params) {
 	r := gin.Default()
 
-	baseRoute := r.Group("/api")
+	userRoute := r.Group("/api/user/")
 
-	baseRoute.POST("/user/signup", params.User.SignUp)
+	userRoute.POST("signup", params.User.SignUp)
+	userRoute.POST("signin", params.User.SignIn)
 
+	parcelRoute := r.Group("/api/parcel/")
+	parcelRoute.Use(params.User.CheckAuth())
+
+	parcelRoute.POST("", users.PrepareHandler(params.Parcel.Create, pb.Role_CUSTOMER))
 	srv := http.Server{
 		Addr:    ":" + params.Config.Main.Port,
 		Handler: r,

@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"testDelivery/authorizationService/internal/database/actionPlan"
+	"testDelivery/authorizationService/internal/database/user"
 	"testDelivery/authorizationService/pkg/config"
 )
 
@@ -78,8 +78,13 @@ func (d gormDB) GetDB() *gorm.DB {
 }
 
 func autoMigrate(db *gorm.DB) error {
+
+	if err := addUserEnum(db); err != nil {
+		return err
+	}
+
 	for _, model := range []interface{}{
-		(*actionPlan.ActionPlanEntity)(nil),
+		(*user.UserEntity)(nil),
 	} {
 		dbSilent := db.Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)})
 		if err := dbSilent.AutoMigrate(model); err != nil {
@@ -88,4 +93,23 @@ func autoMigrate(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func addUserEnum(db *gorm.DB) error {
+	roles := []interface{}{
+		user.Admin, user.Courier, user.Customer,
+	}
+	return db.Exec(fmt.Sprintf(`
+		DO
+		$$
+		BEGIN
+			IF NOT EXISTS (SELECT * FROM pg_type typ
+				INNER JOIN pg_namespace nsp ON nsp.oid = typ.typnamespace
+				WHERE nsp.nspname = current_schema() AND typ.typname = 'enum_user_role') THEN
+				CREATE TYPE enum_user_role AS ENUM('%s', '%s', '%s');
+			END IF;
+		END;
+		$$
+		LANGUAGE plpgsql;
+	`, roles...)).Error
 }

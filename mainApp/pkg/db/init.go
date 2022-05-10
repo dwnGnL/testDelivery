@@ -10,7 +10,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"testDelivery/mainApp/internal/database/actionPlan"
 	"testDelivery/mainApp/pkg/config"
 )
 
@@ -78,9 +77,7 @@ func (d gormDB) GetDB() *gorm.DB {
 }
 
 func autoMigrate(db *gorm.DB) error {
-	for _, model := range []interface{}{
-		(*actionPlan.ActionPlanEntity)(nil),
-	} {
+	for _, model := range []interface{}{} {
 		dbSilent := db.Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)})
 		if err := dbSilent.AutoMigrate(model); err != nil {
 			return err
