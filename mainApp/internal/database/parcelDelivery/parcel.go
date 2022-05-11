@@ -8,6 +8,7 @@ import (
 
 type ParcelDeliveryInter interface {
 	Create(aPE *ParcelDeliveryEntity) error
+	UpdateDestination(id int64, c Coordinates) error
 }
 
 func (a *ParcelDeliveryEntity) BeforeCreate(_ *gorm.DB) (err error) {
@@ -26,6 +27,13 @@ func New(dbr *gorm.DB) ParcelDeliveryInter {
 
 func (aP parcelDelivery) Create(pde *ParcelDeliveryEntity) error {
 	if err := aP.db.Create(pde).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pD parcelDelivery) UpdateDestination(id int64, c Coordinates) error {
+	if err := pD.db.Where("id", id).UpdateColumn("recipient_coordinate", c).Error; err != nil {
 		return err
 	}
 	return nil

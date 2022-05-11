@@ -10,8 +10,8 @@ type ParcelDeliveryEntity struct {
 	ID                  int64          `gorm:"column:id;type:bigint;primaryKey;autoIncrement"`
 	Name                string         `gorm:"column:name"`
 	Description         string         `gorm:"column:description"`
-	RecipientCoordinate coordinates    `gorm:"column:recipient_coordinate;type:jsonb"`
-	SenderCoordinate    coordinates    `gorm:"column:sender_coordinate;type:jsonb"`
+	RecipientCoordinate Coordinates    `gorm:"column:recipient_coordinate;type:jsonb"`
+	SenderCoordinate    Coordinates    `gorm:"column:sender_coordinate;type:jsonb"`
 	AdditionalInfo      AdditionalInfo `gorm:"column:additional_info;type:jsonb"`
 	Created             int64          `gorm:"column:created"`
 }
@@ -31,16 +31,16 @@ func (a *AdditionalInfo) Scan(value interface{}) error {
 	return json.Unmarshal(b, &a)
 }
 
-type coordinates struct {
+type Coordinates struct {
 	Longitude float64 `json:"longitude"`
 	Latitude  float64 `json:"latitude"`
 }
 
-func (a coordinates) Value() (driver.Value, error) {
+func (a Coordinates) Value() (driver.Value, error) {
 	return json.Marshal(a)
 }
 
-func (a *coordinates) Scan(value interface{}) error {
+func (a *Coordinates) Scan(value interface{}) error {
 	b, ok := value.([]byte)
 	if !ok {
 		return errors.New("type assertion to []byte failed")

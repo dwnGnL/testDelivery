@@ -42,6 +42,8 @@ func SetupRouter(params Params) {
 	parcelRoute.Use(params.User.CheckAuth())
 
 	parcelRoute.POST("", users.PrepareHandler(params.Parcel.Create, pb.Role_CUSTOMER))
+	parcelRoute.PUT(":id", users.PrepareHandler(params.Parcel.Create, pb.Role_CUSTOMER))
+
 	srv := http.Server{
 		Addr:    ":" + params.Config.Main.Port,
 		Handler: r,
