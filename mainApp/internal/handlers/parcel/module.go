@@ -17,6 +17,7 @@ var Module = fx.Provide(NewParcelHandler)
 
 type ParcelHandler interface {
 	Create(c *gin.Context, userID string)
+	ChangeDestination(c *gin.Context, userID string)
 }
 
 type Params struct {
@@ -81,5 +82,36 @@ func (p parcelHandler) ChangeDestination(c *gin.Context, userID string) {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "bind error"})
 		return
 	}
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func (p parcelHandler) CancelParcel(c *gin.Context, userID string) {
+	var parcelReq models.ParcelCreateReq
+	if err := c.ShouldBindJSON(&parcelReq); err != nil {
+		p.log.Warnln("bind error")
+		c.JSON(http.StatusBadGateway, gin.H{"error": "bind error"})
+		return
+	}
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		p.log.Warnln("parse id error")
+		c.JSON(http.StatusBadGateway, gin.H{"error": "bind error"})
+		return
+	}
+	pD := parcelDelivery.New(p.db.GetDB())
+	parcel, err := pD.Get(id)
+	if parcel.Status.CheckTransitionPossible(parcelDelivery.IsCanceled) {
+		if err := pD.CancelParcel(id); err != nil {
+			p.log.Warnln("bind error")
+			c.JSON(http.StatusBadGateway, gin.H{"error": "bind error"})
+			return
+		}
+	} else {
+		p.log.Warnln("change status err")
+		c.JSON(http.StatusBadGateway, gin.H{"error": "can`t change status"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
